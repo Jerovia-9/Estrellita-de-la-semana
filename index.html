@@ -530,11 +530,12 @@
             const div = document.getElementById('vote-section');
             div.innerHTML = "";
 
-            // Ordenar aleatoriamente para que no siempre aparezcan en el mismo orden
+            // Ordenar aleatoriamente
             const mezcladas = [...listaHermanasRaw].sort(() => Math.random() - 0.5);
 
             mezcladas.forEach(h => {
-                if (h.nombre === usuarioActual) return; // no mostrar a sí misma
+                // 🔥 CORRECCIÓN: comparar con el user, no con el nombre
+                if (h.user === usuarioActual) return; // no mostrar a sí misma
 
                 const bubble = document.createElement('div');
                 const estaHabilitada = (h.habilitada === "SI");
