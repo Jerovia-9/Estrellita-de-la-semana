@@ -442,7 +442,7 @@
     </div>
 
     <div id="star-anim-screen" class="fullscreen-overlay">
-        <div class="giant-star">⭐</div>
+        <div id="the-star" class="giant-star">⭐</div>
     </div>
 
     <div id="success-screen" class="fullscreen-overlay">
@@ -459,24 +459,26 @@
     </div>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzjw-lHc9tzPRdkstWOwp4TF_Pgthtg2GNRVIdwMk9Az6RXyGq1sXehAFU1MXmrxvnVuw/exec"; // Reemplazar con tu URL
+        // ---------- CONFIGURACIÓN ----------
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwZC6cOAM7oSEPkQ75Nxea1HZRIiZWYb-wospwtYBW7WxenPDxWHK8PYYxnKcCn3PhPkQ/exec"; // Reemplazar con tu URL
 
         let listaHermanasRaw = [];
         let usuarioActual = "";
         let passActual = "";
         let hermanaElegida = "";
 
+        // ---------- CARGAR HERMANAS ----------
         async function cargarHermanas() {
             try {
                 const resp = await fetch(SCRIPT_URL + "?t=" + new Date().getTime());
                 listaHermanasRaw = await resp.json();
-                // No rellenamos ningún desplegable ahora, solo guardamos la lista.
             } catch (e) {
                 document.getElementById('login-error-msg').innerText = "Error al cargar la lista. Recarga la página.";
                 document.getElementById('login-error-msg').style.display = 'block';
             }
         }
 
+        // ---------- LOGIN ----------
         async function acceder() {
             const user = document.getElementById('user-input').value.trim();
             const pass = document.getElementById('pass-input').value.trim();
@@ -526,16 +528,17 @@
             }
         }
 
+        // ---------- RENDER BURBUJAS ----------
         function renderBubbles() {
             const div = document.getElementById('vote-section');
             div.innerHTML = "";
 
-            // Ordenar aleatoriamente
+            // Mezclar aleatoriamente
             const mezcladas = [...listaHermanasRaw].sort(() => Math.random() - 0.5);
 
             mezcladas.forEach(h => {
-                // 🔥 CORRECCIÓN: comparar con el user, no con el nombre
-                if (h.user === usuarioActual) return; // no mostrar a sí misma
+                // Omitir a la propia usuaria
+                if (h.user === usuarioActual) return;
 
                 const bubble = document.createElement('div');
                 const estaHabilitada = (h.habilitada === "SI");
@@ -552,6 +555,7 @@
             });
         }
 
+        // ---------- MODALES ----------
         function abrirModal(elegida) {
             hermanaElegida = elegida;
             document.getElementById('confirm-text').innerText = `¿Quieres dar tu estrella de hoy a ${elegida}?`;
@@ -562,6 +566,7 @@
             document.getElementById('custom-confirm').style.display = 'none';
         }
 
+        // ---------- VOTAR ----------
         async function procesarVoto() {
             cerrarModal();
             document.getElementById('loading-screen').style.display = 'flex';
@@ -579,7 +584,8 @@
                 const res = await response.json();
                 document.getElementById('loading-screen').style.display = 'none';
 
-                if (res.status.includes("éxito")) {
+                // Si el status NO contiene "Error", asumimos éxito
+                if (!res.status.includes("Error")) {
                     iniciarAnimacion();
                 } else {
                     mostrarError(res.status);
@@ -590,10 +596,22 @@
             }
         }
 
+        // ---------- ANIMACIÓN DE ESTRELLA ----------
         function iniciarAnimacion() {
             const animScreen = document.getElementById('star-anim-screen');
+            const star = document.getElementById('the-star');
+            
+            // Ocultar elementos de fondo
+            document.querySelector('.container').style.display = 'none';
+            
+            // Mostrar pantalla de animación
             animScreen.style.display = 'flex';
-            // La animación se dispara automáticamente por CSS
+            
+            // Reiniciar la animación (quitar y volver a agregar la clase)
+            star.classList.remove('animar-estrella');
+            // Forzar reflow para reiniciar la animación
+            void star.offsetWidth;
+            star.classList.add('animar-estrella');
 
             setTimeout(() => {
                 animScreen.style.display = 'none';
@@ -601,6 +619,7 @@
             }, 2200);
         }
 
+        // ---------- MOSTRAR ERROR ----------
         function mostrarError(motivo) {
             document.getElementById('login-section').style.display = 'none';
             document.getElementById('vote-section').style.display = 'none';
@@ -608,6 +627,7 @@
             document.getElementById('error-screen').style.display = 'flex';
         }
 
+        // ---------- INICIO ----------
         window.onload = cargarHermanas;
     </script>
 </body>
